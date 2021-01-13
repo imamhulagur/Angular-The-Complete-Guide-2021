@@ -10,7 +10,7 @@ Installing angular
     ->angular/ng path ->C:\Users\Imam Hulagur\AppData\Roaming\npm\node_modules\@angular\cli\bin
     npm ->C:\Users\Imam Hulagur\AppData\Roaming\npm\
 5.ng --version
-6.creat new project
+6.create new project
 cmd>ng new my-first-app
 
 Installing Bootstrap Correctly
@@ -24,3 +24,8 @@ Installing Bootstrap Correctly
     ->cross verification
         run application using >ng serve
         go to inside Sources in developer tools and u ll see the installed bootstraps version insides style.css
+
+
+Project Hands on
+-model is just a ts file, which represents blueprint of a object we create[like a bean in java]
+-it will not contain @Model decorator
