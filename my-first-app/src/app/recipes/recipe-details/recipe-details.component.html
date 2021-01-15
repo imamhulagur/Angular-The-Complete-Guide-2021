@@ -12,10 +12,13 @@
 <div class="row">
     <h1 class="col-xs-12">{{recipe.name}}</h1>
 </div>
-
+<!-- appDropdown is an structural directive which open and close the dropdown on click. -->
 <div class="row">
     <div class="col-xs-12">
-        <div class="btn-group">
+        <div 
+            class="btn-group"
+            appDropdown
+            >
             <button 
                 type="button" 
                 class="btn btn-primary dropdown-toggle"

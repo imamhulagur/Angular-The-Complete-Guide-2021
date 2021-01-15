@@ -9,9 +9,12 @@
         <li><a href="#" (click)="onSelect('recipe')">Recipes</a></li>
         <li><a href="#"(click)="onSelect('shopping-list')">Shopping List</a></li>
       </ul>
-
+<!-- appDropdown is an structural directive which open and close the dropdown on click. -->
       <ul class="nav navbar-nav navbar-right">
-        <li class="dropdown">
+        <li 
+          class="dropdown"
+          appDropdown
+          >
           <a href="#" class="dropdown-toggle" role="button">Manage<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="#">Save Data</a></li>
