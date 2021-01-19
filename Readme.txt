@@ -54,7 +54,7 @@ Services and Dependency injection
     services 
         - DRY{Don't Repeat Yourself}
         - angular classes/business object which used to share the data, acts as centralized data outsourcing elements
-        - To avoid/reduce code redendency/duplication
+        - To avoid/reduce code redundancy/duplication
         -centralized data management ex services in RxJS, Store concept in NgRx
         -*while creating service we will not add any type of decorators
         -*We should not create instances of services manually using new keyword, instead we need to inject it{so that angular will create services instances on the fly} inside constructor.
@@ -64,20 +64,20 @@ Services and Dependency injection
 
     Steps to create inject any service automatically by angular not manually.
         -create service class
-        -inject it inside required components{it tell angular where we need the service}
+        -inject it inside required components{that tells angular where we need the service}
         -declare the service inside providers[] inside @component decorator.
 
     Hierarchical injection
         -The instances of services will only propagate downwards/child compo but not upwards/parent components
-        -*While the services injected inside app,components.ts providers[] will only share data with app and its child components.
+        -*While the services injected inside app.components.ts providers[] will only share data with app and its child components.
             we can access data using same service reference.
         -*If you want to share the data as of parents components then just remove local services declaration inside providers[]
             but not from constructor since angular need to know this present component need same data instead of
             overriding data by creating other local component ref to injected service.
 
     Injecting service into other service
-        -for this its not possible in the component level,instead it should happen in ap.module.ts i.r global level
-        -using decorator @Injectable() i.e the service where you want to inject not for the service which you are injecting.
+        -for this its not possible in the component level,instead it should happen in app.module.ts i.e global level
+        -using decorator @Injectable() i.e the service to which module you want to inject not for the service which you are injecting.
         -good practice always declare a service with @Injectable decorator since at least in future you may inject something to this service.
 
     What happens if we wont use services
@@ -99,3 +99,4 @@ Note : In Angular 6+ injecting services in app.module.ts can be done using below
             desiredService
         ]
     })
+
