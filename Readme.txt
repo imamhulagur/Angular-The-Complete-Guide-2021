@@ -51,7 +51,7 @@ Component creation and Data binding
     -imp* we need to know the the name of our property should have same name as our selector
 
 Services and Dependency injection
-    services 
+    services - To avoid complex chain of event and property binding
         - DRY{Don't Repeat Yourself}
         - angular classes/business object which used to share the data, acts as centralized data outsourcing elements
         - To avoid/reduce code redundancy/duplication

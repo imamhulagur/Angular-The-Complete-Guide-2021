@@ -1,5 +1,6 @@
-import { Component, EventEmitter, OnInit, Output} from '@angular/core';
+import { Component, OnInit} from '@angular/core';
 import { Recipe } from '../recipe.model';
+import { RecipeService } from '../recipe.service';
 
 @Component({
   selector: 'app-recipe-list',
@@ -7,22 +8,12 @@ import { Recipe } from '../recipe.model';
   styleUrls: ['./recipe-list.component.css']
 })
 export class RecipeListComponent implements OnInit {
-  //because we cant listen event emitted by child of a child
-  //@Output() - so that we can listen to this event from outside
-  @Output() recipeWasSelected = new EventEmitter<Recipe>();
+  recipes: Recipe[];
 
-  recipes: Recipe[] = [
-    new Recipe('A Test Recipe', 'This is simply a test', 'https://i1.wp.com/www.eatthis.com/wp-content/uploads/2019/10/pumpkin-pad-thai-recipe.jpg?fit=1200%2C879&ssl=1'),
-    new Recipe('Another Test Recipe', 'This is simply a test', 'https://i1.wp.com/www.eatthis.com/wp-content/uploads/2019/10/pumpkin-pad-thai-recipe.jpg?fit=1200%2C879&ssl=1')
-  ];
-
-  constructor() { }
+  constructor(private RecipeService: RecipeService) { }//injected RecipeService
 
   ngOnInit(): void {
-  }
-
-  onRecipeSelected(recipe: Recipe) {
-    this.recipeWasSelected.emit(recipe);
+    this.recipes = this.RecipeService.getRecipes(); //call getRecipe() and assign data to local recipes[]
   }
 
 }
