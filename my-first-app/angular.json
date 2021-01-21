@@ -28,7 +28,7 @@
               "src/assets"
             ],
             "styles": [
-              "C:/Users/i721901/imamsab.hulagur/JavascriptWorld/AngularWorld/Angular-The-Complete-Guide-2021/my-first-app/node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "src/styles.css"
             ],
             "scripts": []
