@@ -391,3 +391,19 @@ Routing
         all the part after that can be ignored by our web server. 
         therefore it can run on web server even if its not returning index.html file.
     After # tag can be parsed by our client i,r by Angular.
+
+Routing - Course project
+************************
+    @NgModule({}) -  will added to convert normal typescript class into angular module, which take JS object.
+    The order of the route place should following
+        first static routes
+        The routes with dynamic params
+        ex
+            {
+                path: 'new', component: RecipeEditComponent // /recipe/new
+            },
+            {
+                path: ':id', component: RecipeDetailsComponent
+            },
+    *The Observable which we have created should need to unsubscribe manually inside onDestroy()
+        The Observable which angular created will be gets unsubscribed automatically

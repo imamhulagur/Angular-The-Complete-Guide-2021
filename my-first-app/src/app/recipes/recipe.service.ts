@@ -34,7 +34,10 @@ export class RecipeService implements OnInit {
     getRecipes() {
         return this.recipes.slice();//slice() return copy of recipe array, so that we cant get access to the real recipe array directly.
     }
-
+    
+    getRecipe(index: number) {
+        return this.recipes[index];
+    }
     ngOnInit(){
 
     }
