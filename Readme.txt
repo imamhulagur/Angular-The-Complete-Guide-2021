@@ -100,3 +100,294 @@ Note : In Angular 6+ injecting services in app.module.ts can be done using below
         ]
     })
 
+Routing
+********
+    To make user look like they are shifting from one page to another, but in reality
+        we are loading single page with different component template based dynamic routing.
+        instead of calling statically from HTML templates of other components.
+    app.model.ts is a good place to inform angular about the routes of our application.
+    each route is just a javascript object inside appRoute: Routed []
+        which will accept path and components as a keys
+    add 'RouterModule' inside @NgModule ans the register appRoutes to RouterModule inside imports.
+    To inform angular where to put our routes, use <router-outlet/>(this will mark the place in our document where we want angular to load currently loaded compo)
+    put your routes values into special type of directive cal routeLink = ['routeName']
+    Absolute path - with '/' in the beginning, which will always gets appended to root domain.
+        with './ or ../' will go back one path, or got back another path.
+    Active route style - dynamically
+    --------------------------------
+    The a angular provided an directive, routerLinkActive=""
+        for empty path i.e /nothing, is always present in all the path so to avoid this
+            we need to use directive - routerLinkActiveOptions
+            this need [] because just can not pass JS object directly to directive, so ween to wrap it property binding using[];
+                ex: [routerLinkActiveOptions] = "{exact : true}
+    Navigate Programmatically
+    --------------------------
+    If you want to redirect to any other page in other components
+        1.first inject the Router 
+        2.use this.Router.navigate([]) method
+    using relative path
+    -------------------
+    inject ActivatedRouter to provide relative path and navigate to other components
+    why it does not give error this time, but given error while we are using routerLink?
+        because unlike 'router' method [routerLink] does not know the active route.
+    To tell router where we are currently
+        we need to specify relativeTo: "" property.
+        Router is a complex JS object with a lots of meta data.
+    passing parameters to route
+    ---------------------------
+    /: will tell router that 'this is out dynamic part of the route'
+
+    Fetching route parameters
+    ------------------------
+    inject Activated router
+    Since it had lot of meta data related to route, it will give access to id passed in the URL of selected user using
+        snapshot property i.e this.router.snapshot.params['id'];
+
+    Fetching route parameters reactively.
+    -----------------------------------
+    Angular would not create/render new component and destroy the old if you are already on same component(because of performance issue)
+    Still if you need to update the current component with update values you can do it by following
+        we need a different approach instead of snapshot(which is for initial routing purpose)
+        need to use 'param' observable, since you dont know when, if or how long it will take to change url change.
+            we cant block our routing. So need ot subscribe to observable.
+        observable is 3rd party packages(rxjs) which are used to perform asynchronous task, without having to wait for the task which might happen in future.
+        ex : this.router.params
+            .subscribe(
+                (params: Params)=> {
+                    this.user.id = params['id'];
+                    this.user.id = params['name'];
+                }
+            )
+            Now this trigger only when there is changes in url/params
+
+    Important note about observables
+    ---------------------------------
+    Observable will be destroyed even if your component get destroyed from the memory if you moved to other component.
+        So we need to unsubscribe observable in onDestroy() of angular.
+        create subscription object
+            paramSubscription: Subscription;
+        unsubscribe inside ngDestroy()
+            this.paramSubscription.unsubscribe();
+    
+    passing query parameter and fragments
+    -------------------------------------
+        { path: "servers/:id/edit", component: EditServerComponent}
+        [routerLink] = "['/servers', 5, 'edit']" //http://localhost:4200/servers/5/edit
+    ?key=value&key2=value2
+        [queryParams] = "{allowEdit : '1'}" //http://localhost:4200/servers/5/edit?allowEdit=1
+    #loading - route with extra information
+        [fragment] = "'loading'" //http://localhost:4200/servers/5/edit?allowEdit=1#loading
+        since fragment directive string as argument not JS, we can also write as
+        fragment = "loading"
+    Programmatically
+        this.router.navigate(['./servers', id, 'edit'], {queryParams: { allowEdit: '1'}, fragment: 'loading'});
+        (click) = "onLoadServer(1)"
+
+    Retrieving queryParams and fragments
+    ------------------------------------
+    inject route: ActivatedRouter
+        console.log(this.route.snapshot.queryParams);
+        console.log(this.route.snapshot.fragment);
+        this.route.queryParams.subscribe();
+        this.route.fragment.subscribe();
+
+    Practicing some common gotchas
+    ------------------------------
+
+    nested/child routing
+    --------------------
+    if only nest we get error
+        the <router-outlet></router-outlet> id only available to top level routes
+        child routes also needs a separate outlet, because they simply cant override, instead they should be loaded nested.
+    <router-outlet></router-outlet>//this will be new route, which will use on all child routes.
+
+    using queryParams - practice
+    ---------------------------
+
+    configuring handling of queryParams
+    -----------------------------------
+    queryParamsHandling: 'merge'/'preserve - to make sure, we dont loose param info we have before.
+
+    redirecting and wildcard routing and redirectTo
+    -----------------------------------------------
+    what if user enters un handled url/routes
+    create separate component to handle such kind of scenarios
+        { path: 'not-found', component: PageNotFoundComponent  },
+        { path: 'something', redirectTo: '/not-found'}
+    wildcard route(**)
+        That mean catch all possible routes which are unknown to Angular ans redirect to mentioned component.
+        The order is super important here - 
+            If it was in the beginning, you will always redirect to '/not-found'
+            make sure it should be last, because our array gets parsed from top to bottom.
+
+    'pathMatch' ing while redirecting
+    --------------------------------
+    By Default Angular matches the path by prefix. That means the following route will match both / and /recipe
+        since path entered in URL 'starts with the path' specified in the route.
+        {path: '', redirectTo: './somewhere'}
+    To fix this behavior, we need to change matching strategy to 'full'
+        {path: '', redirectTo: 'somewhere', pathMatch: 'full'}
+
+    outsourcing the route configuration
+    -----------------------------------
+    Typically if you have more than 2 or 3 route configuration i.e if route configuration taking much space in app.module.ts
+        we need to add them in new file for whole application i.e app-routing.module.ts
+    No need to add Declaration[], since they all declared inside app.module.ts otherwise we ll get error.
+    *we need to export/outsource these routes from app.routing.module.ts 
+        exports: [
+            RouterModule
+        ]
+    to add in imports[AppRoutingModule] of app.module.ts
+        imports:[AppRoutingModule]
+
+    Route Guards
+    ************
+    Functionality, logic or code executed before loading of route.
+    Manually checking this in NgOnInit(){} of a particular component will be very cumbersome.
+    so need to angular feature called angular router.
+
+    protecting routes with canActivate
+    ----------------------------------
+    ->create service, which implements CanActivate interface
+        (it will forces us to implements and override canActivate() compulsory)
+        it wil take two input ActivatedRouteSnapshot, RouteStateSnapshot
+        it return observable<boolean> alternatively it can return promise<boolean> or boolean
+        it can run synchronously and also asynchronous.
+        create fake auth service since we have not implemented login functionality
+        inject auth service into auth guard, to do we need to make auth guard as injectable
+        if user is authenticated then return true, or else we should not allow user to access that page 
+            redirect him to other page by injecting router and navigate.
+    ->To use created guard
+        We need to found out which route should be protected by this guard(ex: here servers compo)
+        add canActivate[] property, it will take all the guard to which it should apply to all teh child compo.
+        asd both services namely authService, AuthGuard to providers[] of app.module.ts
+        protecting only child/nested routes with canActivateChild
+        ----------------------------------------------------------
+        implement new interface canActivateChild in AuthGuard
+        just declare method call back canActivate method, now we can write different hook in our routes i.e canActivateChild
+        Now we can protect single route(using canActivate) and child routes(using canActivateChild) inside app.module
+    
+    Controlling navigation with canDeactivate
+    -----------------------------------------
+    when user accidentally navigating on other tabs need ask do need to save current changes.
+    create one flag to keep track of changes
+        changesSaved = false;
+    As soon as update one level up and ask.
+        this.changesSaved = true;
+        this.router.navigate(['../'], {relativeTo: this.route})
+    create a can-deactivate-guard.service.ts since a guard should always be service.
+        import { ActivatedRouteSnapshot, RouterStateSnapshot } from "@angular/router";
+        import { Observable } from "rxjs";
+
+        export interface CanComponentDeactivate {
+            //since interface contains only method declaration which need to taken care by child classes
+            //it had only one method, canDeactivate without any parameters
+            canDeactivate: () => Observable<boolean> | Promise<boolean> | boolean;
+        }
+
+        //write our class now by implementing above interface
+        export class canDeactivateGuard implements canDeactivate<CanComponentDeactivate> {
+            //this is method will be called by angular router once user tries to navigate to other component.
+            // ?: is an optional argument
+            canDeactivate(component: CanComponentDeactivate,
+                currentRoute: ActivatedRouteSnapshot,
+                currentState: RouterStateSnapshot,
+                nextState?: RouterStateSnapshot
+                ): Observable<boolean> | Promise<boolean> | boolean {
+                    return component.canDeactivate();
+                }
+        }
+    define it inside providers[] in app.module
+         providers: [ServersService, AuthService, AuthGuard,canDeactivateGuard],
+    implement it in our own compo
+        canDeactivate():Observable<boolean> | Promise<boolean> | boolean {
+            if(!this.allowEdit) {
+            return true;
+            }
+            if((this.serverName !== this.server.name || this.serverStatus !== this.server.status) && !this.changesSaved) {
+            return confirm('Do you want to discard the changes?');
+            } else {
+            return true;
+            }
+        }  
+
+    passing a static data to Route
+    ------------------------------
+    even though we are receiving data or how to get param out of route URL, 
+        still some of our routes depend on your data they received statically(each type they have loaded) or dynamically
+    for example to display particular error message
+    crete error page
+        ng g c error-page
+    go to that route, define your own data object
+        { path: 'not-found', component: ErrorPageComponent, data: {message: 'Page not found!'} },
+    subscribe assign and make use it of it in html.
+        ngOnInit(): void {
+            //this.errorMessage = this.route.snapshot.data['message'];
+            this.route.data.subscribe(
+            (data: Data)=> {
+                this.errorMessage = data['message'];
+            }
+            )
+        }
+    
+    passing a dynamic data to Route/ Resolving Dynamic data with resolve Guard.
+    ---------------------------------------------------------------------------
+    if i want to load from backend, so we need a resolver.
+    resolver
+        its an service similar to canActivate and canDeactivate will help us run some code before a route is rendered.
+    create resolver server 
+        ex server-resolver.service.ts
+    it should need to implement Resolve interface.
+        interface Server {
+            id: number,
+            name: string,
+            status: string
+        }
+        //here we want to inject ServersService into ServerResolver service so @Injectable()
+        @Injectable()
+        export class ServerResolver implements Resolve<{id: number, name: string, status: string}> {
+            constructor(private serversService: ServersService) {}
+            resolve(route: ActivatedRouteSnapshot,
+                state: RouterStateSnapshot): Observable<Server> |Promise<Server> | Server {
+                    //inject ServersService, reach out to getServer
+                    return this.serversService.getServer(+route.params['id']);
+                }
+        }
+    config the route with resolver
+         { 
+                path: ":id", 
+                component: ServerComponent,
+                resolve: {server: ServerResolver}
+            },
+    import resolver server in app module
+        providers: [ServersService, AuthService, AuthGuard,canDeactivateGuard, ServerResolver],
+    subscribe to resolver and access asynchronous data from server
+        this.route.data
+        .subscribe(
+        (data: Data)=> {
+            this.server = data['server'];//make sure the property name should match the one which you have provided in route resolver config
+        }
+        );
+    
+    Understanding the location strategies(when you are hosting on real server)
+    --------------------------------------------------------------------------
+    it works fine here in our local setup, this is not something we should taken for granted.
+    if we have route like ourDomain/
+        if we are hosting it in real server in web this might not work out of the box.
+        because there the route are always parsed/handled by the server which host our application.
+        but here in our local environment i.e in our development environment we are using development sever which has one special configuration than real life server also has to have.
+    The server hosting our SPA/single page application has to be configured such that in case of 404 error it return index.html file starting an containing our angular app. why..?
+        because al our URLs are parsed by the server first(not by the a angular)
+        Now if we have /servers here, it will look for /servers on real server on web.
+        now chances are we dont really have /servers route here, we only have only one file index.html containing our angular app.
+        and we want our angular to take over and parse these routes, but it will never get a chance if our real server decide no i dont know this route, here is your 404 error page. 
+    So in such cases we need to make sure your real web server need to return index.html file.
+        If for some reason we can get to work or we need to support very old browsers which are not able to parse like this in the client in which angular does than.
+        we have an alternate approach using these nice url in web, we need to use older technique which was used in couple of year ago.
+    using # signs in our routes i.e hash mode routing
+        we can enable it in app-routing.module
+            RouterModule.forRoot(appRoutes, {useHash: true})
+        it will inform our real web server that, hey only care about the part before this # key.
+        all the part after that can be ignored by our web server. 
+        therefore it can run on web server even if its not returning index.html file.
+    After # tag can be parsed by our client i,r by Angular.

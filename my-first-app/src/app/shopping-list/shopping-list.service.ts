@@ -1,6 +1,8 @@
+import { Injectable } from "@angular/core";
 import { EventEmitter, OnInit } from "@angular/core";
 import { Ingredient } from "../shared/ingredient.model";
 
+@Injectable()
 export class ShoppingListService implements OnInit {
     ingredientChanged = new EventEmitter<Ingredient[]>();
     private ingredients : Ingredient[] =  [
