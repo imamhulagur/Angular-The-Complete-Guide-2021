@@ -7,8 +7,5 @@ import { Recipe } from './recipes/recipe.model';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  loadedFeature = 'recipe';
-  onNavigate(feature: string) {
-    this.loadedFeature = feature;
-  }
+  
 }

@@ -563,5 +563,5 @@ Observable
         but next() of Subject we can call even from outside function.
     just like our own observables we need to unsubscribe Subject also.
     Subject is only recommended while you are listening to 'cross component' events
-        *To listen to event in same component i.e using @Ouput() we again need to use EventEmitter instead of Subject.
+        *To listen to event in same component i.e using @Output() we again need to use EventEmitter instead of Subject.
     
