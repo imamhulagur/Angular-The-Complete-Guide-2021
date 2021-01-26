@@ -407,3 +407,161 @@ Routing - Course project
             },
     *The Observable which we have created should need to unsubscribe manually inside onDestroy()
         The Observable which angular created will be gets unsubscribed automatically
+
+Observable
+**********
+    Understanding Observable
+    ------------------------
+        Its a data source(Events, Http Requests, Triggers) in a code.
+        its from 3rd party package rsjx, need ot import it from there.
+        It work as following
+                                OBSERVABLE 
+        
+        --------------------------------------------------------->  in between we have stream/timeline, we will get data packates/triggers
+
+                                
+        Handle data        Handle error        Handle completion       We have 3 ways to handle data packates                    
+                                OBSERVER(our code)/subscriber
+
+    An observable doesnt have to complete like observable for button click.
+    But some of the observable will complete like Observable for Http Requests.
+    We will use these observables to handle asynchronous tasks.
+        since we dont know when they wil happen.
+        we dont know how long will it take.
+    So if we are executing normal code, we should not to wait for these event response/completion. bcz that will block our program.
+    we can use call back or Promises, but Observable the just diff approach to handling asyncs. also angular embraces to use lot.
+    Observable have one major advantage i.e Operators.
+
+    creating our own observable
+    ----------------------------
+    import interval(utility function) method from rxjs
+    subscribe to it ngOnInit method, print into console.
+    to prevent memory leak, we need to stop it by unsubscribing. 
+        to do this, first we need to store that subscription of type Subscription variable.
+        inside onDestroy method just unsubscribe it.
+    For the observable provided by angular for us like params will be taken care by angular.
+
+    building custom observable
+    -------------------------
+    create observable using crate() 
+    -----------------------------
+    Here observer is an listen we need to inform observe about the subscription.
+        ngOnInit() {
+            const customObservable = Observable.create(observer => {
+            let count = 0;
+            setInterval(() => {
+                observer.next(count);//observer.error(), observer.complete()
+                count++;
+            }, 1000)
+            });
+
+            //subscribe that custom created observable
+            this.firstObsSubscription = customObservable.subscribe( data => {
+            console.log(data);
+            });
+        }
+
+    error and completion
+    --------------------
+    error
+    fake an error as of now, but in real time we will get from api call error.
+        observer.error(new Error('Counter greater than 3!')); 
+    Handle it 2nd arg fun with error message as an arg
+        this.firstObsSubscription = customObservable.subscribe( data => {
+            console.log(data);
+        }, error => {
+            console.log(error);
+        });
+    complete
+    check the condition
+        if(count === 2) {
+            observer.complete();
+        }
+    write 3rd arg clear fun without any arg
+        ()=> {
+            console.log('Counter completed!');
+        }
+    Operators(https://www.learnrxjs.io/learn-rxjs/operators)
+    ******************************************************
+    To change the format of data.
+    we can call them using a pipe() method. every observable has this method.
+    now we will import Operators from rxjs/Operators lib not from observable, thousands of Operators are there.
+    ex pipe(), map()
+        note: import { map } from 'rxjs/operators'
+    first customise
+        customObservable.pipe(map(
+        (data: number) => {
+        //customise the data format which you needed.
+        return 'Round ' + (data + 1);
+        }));
+
+        //subscribe that custom created observable
+        this.firstObsSubscription = customObservable.subscribe( data => {
+        console.log(data);
+        }, error => {
+        console.log(error);
+        }, ()=> {
+        console.log('Counter completed!');
+        });
+
+    replace it.
+        //subscribe that custom created observable
+        this.firstObsSubscription = customObservable.pipe(map(
+        (data: number) => {
+        //customize the data format which you needed.
+        return 'Round ' + (data + 1);
+        }));.subscribe( data => {
+        console.log(data);
+        }, error => {
+        console.log(error);
+        }, ()=> {
+        console.log('Counter completed!');
+        });
+    using filter
+        since pipe() will take long list of operator, we can send filter a 1nd argument and map() 2nd.
+        filter( data => {
+            return data > 0;// it will return boolean based on condition, based on this next method execution takes place.
+        })
+
+    Subject(Dont use EventEmitter use Subject)
+    *******
+    we can create/show something in other component when we click button.
+        This is used achieve by using EventEmitter.
+        inside EventEmitter we used to emit using function emit()
+        ex : inside app component
+                <p *ngIf="userActivated"> Activate</p>
+                ngOnInit() {
+                    this.userService.activatedEmitter.subscribe(didActivated => {
+                    this.userActivated = didActivated;
+                    })
+                }
+            inside user compo
+                <button class="btn btn-primary" (click)="onActivate()">Active</button>
+                onActivate() {
+                    this.userService.activatedEmitter.emit(true);
+                }
+            create one service to emit event
+                import { EventEmitter, Injectable } from "@angular/core";
+
+                @Injectable({
+                    providedIn: 'root' //This is the new way of declaring service inside app.module.ts providedIn[]
+                })
+                export class UserService {
+                    activatedEmitter = new EventEmitter<boolean>();
+                }
+
+    But now we achieve that by using Subject.
+        create Subject inside user service
+             activatedEmitter = new Subject<boolean>();
+        call that Subject from user compo ts using 'next()'
+            onActivate() {
+                this.userService.activatedEmitter.next(true);
+            }
+
+        but in Subject we make use of function next()
+        In observables we used to call next() inside subscription function only.
+        but next() of Subject we can call even from outside function.
+    just like our own observables we need to unsubscribe Subject also.
+    Subject is only recommended while you are listening to 'cross component' events
+        *To listen to event in same component i.e using @Ouput() we again need to use EventEmitter instead of Subject.
+    
