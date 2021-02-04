@@ -565,3 +565,172 @@ Observable
     Subject is only recommended while you are listening to 'cross component' events
         *To listen to event in same component i.e using @Output() we again need to use EventEmitter instead of Subject.
     
+FORMS
+*****
+    form is something which we used to submit to server with action or method, but here since Angular is SPA there
+        no submitting to server instead we will need to handle the form through Angular.
+        and the if you want to submit to server, we need to reach out via Angular Https service.
+    Why do we need Angular in Forms
+    -------------------------------
+    normal HTML form  -> Angular givers us JS object representation of form making it simple for us to retrieve user values.
+                        to see the state of form and to work with it.
+                        Also it wil store some meta data of form.
+
+    2 ways handling HTML form
+    Template Driven(TD) Forms and Reactive Forms
+    ********************************************
+    Template Driven(TD)
+    -------------------
+        Here we simply setup the form in template, Angular will automatically infer the Form Object from the DOM.
+    Reactive/Complex approach
+        Here we actually define the structure of our form i.e form is created Programmatically manually connect with HTML
+            and the it will synchronized with DOM.
+        Here we can fine tune each and every little piece of our form.
+    creating forms and registering controls
+    ---------------------------------------
+    ->import FormsModule inside imports:[]
+        here <form> element is serving as a selector for some Angular directive. The create such a JS representation Object for us.
+        Right now its empty, still we need to register our control manually since we really dont want ot some of unwanted controls to be registered automatically. 3rd party input fields and all.
+        se we need to register controls manually and tell the angular.
+            1.add 'ngModel' to required controls.
+            2.need to provide controls name using name Attribute.
+
+    submitting and using Form
+    -------------------------
+        place event listener (ngSubmit)  = "onSubmit()"
+            to get access to submitted form, we need to access passing local reference to onSubmit(f) method.
+            the local reference name should be start with '#' i.e #f
+        To retrieve
+            accept form: elementRef in method and log it.
+           here we will not JS, we wil HTML from.
+        But to retrieve using ref we need to inform Angular hey please convert it JS and provide the object inside this ref.
+            #f="ngForm" -> ngForm take care of above task.
+            now the from is of type 'ngForm'
+    Refering from using @ViewChild()
+    ------------------------------
+    instead fo refering form local ref in template, we can do it from ts also by storring that local ref in other variable.
+    @ViewChild() helps to create a local reference for from in ts.
+        @ViewChild('f') signupForm: NgForm;
+        onSubmit() {
+            console.log(this.signupForm);
+        }
+    *This will be best way?
+        bcz we can access the form data not just when you submit it, but also earlier.
+
+    Validations/state management
+    ----------------------------
+        we need to validate user input before sending garbage values to server.
+        required - is default HTML validator for element.
+        email - Angular directive made available for validate email.
+    The local ref for individual control can be created using #ngModel like the one for form as ngForm
+    ex: #email = #ngModel
+
+    Setting Default value using ngModel property
+    --------------------------------------------
+    make ngModel to [ngModel]="variable which had default value'
+    we make use of 'property binding' to do this.
+    ex  defaultValue = 'pet';
+        [ngModel]= 'defaultValue'
+    ngModel with two way data binding
+        sometimes we should not want to only pre populate default value and also want to react to any changes.
+        <div class="form-">
+          <textarea class="form-control" name="questionAnswer"
+            rows="3"
+            [(ngModel)] = 'answer'>
+          </textarea>
+
+          <p>Your reply {{answer}}</p>
+        </div>
+
+        answer = '';
+
+    conclusions
+    no binding - to tell angular that input is a a control
+    onw way binding - to give that control a default value
+    two way binding - to instantly output it or do whatever you want to do with that value.
+
+    TD - Grouping Form controls
+    ---------------------------
+        creating object by grouping related control fields.
+        We can fine tune our validation only on those fields, since that object also had own validations.
+    create grouping
+        ngModelGroup = "variable name"
+    creating local reference so that we can local we can get access to that JS object.
+        #userData = "ngModelGroup"
+
+    TD - Handling Radio buttons
+    --------------------------
+    <div class="radio" *ngFor="let gender of genders">
+          <label>
+            <input 
+              type="radio"
+              name="gender"
+              ngModel
+              [value]="gender"
+              >
+              {{gender}}
+          </label>
+        </div>
+    gender = ['male','female']
+
+    setting and patching form value
+    -------------------------------
+    setValue() - to override whole frm
+        this.signupForm.setValue({
+            userData: {
+                username : suggestedName,
+                email: ''
+            },
+            select : 'pet',
+            questionAnswer: '',
+            gender: 'male'
+        })
+    It has one disadvantage - i.e in ten middle if click on that suggest button it will override all the values.
+    Not necessery good approach
+
+    patchValue() - To override part/patch of the form.
+        here we can override certain necessery data.
+        this.signupForm.form.patchValue({
+            userData: {
+                username : suggestedName
+            }
+        })
+
+
+    reset form
+    -----------
+    call reset() on form
+        it not only reset form control data
+        it also reset the state of form i.e touched, valid.
+
+    Reactive form
+    -------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
