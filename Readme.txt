@@ -108,7 +108,7 @@ Routing
     app.model.ts is a good place to inform angular about the routes of our application.
     each route is just a javascript object inside appRoute: Routed []
         which will accept path and components as a keys
-    add 'RouterModule' inside @NgModule ans the register appRoutes to RouterModule inside imports.
+    add 'RouterModule' inside @NgModule and the register appRoutes to RouterModule inside imports.
     To inform angular where to put our routes, use <router-outlet/>(this will mark the place in our document where we want angular to load currently loaded compo)
     put your routes values into special type of directive cal routeLink = ['routeName']
     Absolute path - with '/' in the beginning, which will always gets appended to root domain.
@@ -590,7 +590,7 @@ FORMS
     ---------------------------------------
     ->import FormsModule inside imports:[]
         here <form> element is serving as a selector for some Angular directive. The create such a JS representation Object for us.
-        Right now its empty, still we need to register our control manually since we really dont want ot some of unwanted controls to be registered automatically. 3rd party input fields and all.
+        Right now its empty, still we need to register our control manually since we really dont want to some of unwanted controls to be registered automatically. 3rd party input fields and all.
         se we need to register controls manually and tell the angular.
             1.add 'ngModel' to required controls.
             2.need to provide controls name using name Attribute.
@@ -608,7 +608,7 @@ FORMS
             now the from is of type 'ngForm'
     Refering from using @ViewChild()
     ------------------------------
-    instead fo refering form local ref in template, we can do it from ts also by storring that local ref in other variable.
+    instead fo refering form local ref in template, we can do it from ts also by storing that local ref in other variable.
     @ViewChild() helps to create a local reference for from in ts.
         @ViewChild('f') signupForm: NgForm;
         onSubmit() {
@@ -645,9 +645,9 @@ FORMS
         answer = '';
 
     conclusions
-    no binding - to tell angular that input is a a control
-    onw way binding - to give that control a default value
-    two way binding - to instantly output it or do whatever you want to do with that value.
+    no binding - ngModel- to tell angular that input is a a control
+    one way binding - [ngModel] - to give that control a default value
+    two way binding - [(ngnModel)] - to instantly output it or do whatever you want to do with that value.
 
     TD - Grouping Form controls
     ---------------------------
@@ -705,7 +705,176 @@ FORMS
 
     Reactive form
     -------------
+    In this approach the from is created 'programmatically'
+    ->create form of type FormGroup
+    ->to connect our reactive form to HTML we need to import ReactiveFormModule in app.module manually from "@angular/forms
+    ->import ReactiveFormsModule in imports[] of app.component
+    ->initialize form before rendering inside ngOnInit()
+        ngOnInit() {
+            this.signupFrom = new FormGroup({
+            username: new FormControl(null),
+            email: new FormControl(null),
+            gender: new FormControl("male"),
+            });
+        }
+        FormControl(init state, [validators], [async validators])
+   *The brackets, [], cause Angular to evaluate the right-hand side of the assignment as a dynamic expression. Without the brackets, Angular treats the right-hand side as a string literal and sets the property to that static value.
+    Now we some how need to synchronize this form with HTML form, since right out angular doesnt know which of out TS control are related to which input codein our template code.
+    ->[FormGroup] - hey angular please take my own created form, dont create one, dont take other.
+        we need to bind our TS from to HTML template using property binding.
+        <form [formGroup]="signupFrom">
+            now the form in synchronized with TS from, but still we need to tell angular which ts 'control' should be connect to which 'input' in template code.
+        To do this we get another directive i.e 'FormControlName'{it ll tell hey this is name of control in my TS code}
+    Submitting reactive from:
+        <form 
+            [formGroup]="signupForm"
+            (ngSubmit)="onSubmit()"
+        >
+        The diff with TD is that we dont need to get the form via that local reference
+    formGroupName - directive to tell angular this is FormGroup inside FromGroup
+        userData: new FormGroup({
+            'username': new FormControl(null, [Validators.required]),
+            'email': new FormControl(null, [Validators.required, Validators.email]),
+        }),
+        wrap control input div inside new form control div and provide the name.
+            <div
+                formGroupName='userData'
+            >
+        provide the relative path  
+            *ngIf="!signupForm.get('userData.username').valid
 
+    FormArray
+    ---------
+        When the control aer gets added dynamically
+        1.declare FormArray with empty data inside signupForm
+            'hobbies': new FormArray([])
+        2.inform angular about created FormArray control in template
+            <div
+                formArrayName='hobbies'  
+                >
+        3.call addHobby method and iterate over hobbies and display FormControlName using index
+            <div
+                formArrayName='hobbies'  
+                >
+                <h4>Your Hobbies</h4>
+                <button 
+                    class="btn btn-default"
+                    type="button"
+                    (click)="onAddHobby()"
+                    >
+                    Add Hobby
+                </button>
+                <div 
+                    class="form-group"
+                    *ngFor="let hobbyControl of signupForm.get('hobbies').controls; let i = index"
+                    >
+                    <input 
+                    type="text"
+                    class="form-control"
+                    [formControlName]='i'
+                    >
+                </div>
+            </div>
+        4.access the FormArray control object and push the user entered hobbies into it.
+            onAddHobby() {
+                const control = new FormControl(null, Validators.required);
+                (<FormArray>this.signupForm.get('hobbies')).push(control);
+            }
+    custom validators
+    -----------------
+        validator is just function, in the angular ll call that function automatically to test vulnerability of input.
+        syntax
+            validatorFun(control:FormControl)
+            validator should return javascript object, it should have any 'key' represented as a string, 'value' of type boolean ex {forbName: true}
+            {[s: string]: boolean}
+        validatorFun(control:FormControl):{[s: string]: boolean} {
+            ...
+        }
+
+        ex:
+    1.define function
+    forbiddenNames(control: FormControl): {[s: string]: boolean} {
+        if(this.forbiddenUserNames.indexOf(control.value)) {
+                return {'error code : name can be used': true};
+                }
+                else return null;//you need to return 'null' or nothing, never return 'false' thats how it wil work.
+            }
+    2.call function from validator array
+        dont execute it, just put reference i..e this.forbiddenNames
+    3.need to bind, since javascript 'this' is undefined outside of class so, angular is calling this function so it will give error.
+        solution
+        this.forbiddenNames.bind(this)
+    4. -1 ll be considered as true
+        need to check not equal condition
+             if(this.forbiddenUserNames.indexOf(control.value) !== -1)
+    
+    using error codes
+    -----------------
+        angular will add error codes->on the individual controls->on the errors object
+
+        so we can take advantage of this by making use of it inside 'html' more relevant errors messages
+            <span *ngIf="signupForm.get('userData.username').errors['nameIsForbidden']">This name is invalid!</span>
+            <span *ngIf="signupForm.get('userData.username').errors['required']">This name is required!</span>
+    
+    creating custom async validator
+    ------------------------------
+    typically if we want check the username is invalid, we need to reach out to server i.e using async validators since it ll take couple of sec.
+    1.listen to promise/ here create a promise
+        forbiddenEmails(control: FormControl): Promise<any> | Observable<any> {
+            const promise = new Promise<any>((resolve, reject) =>{
+            setTimeout(()=> {
+                if(control.value === 'test@test.com') {
+                resolve({'emailIsForbidden':true});
+                } else{
+                resolve(null);
+                }
+            },1500);
+            });
+            return promise;
+        }
+    2.Dont execute it simply pass the reference inside async validator array
+        this.forbiddenEmails
+
+    now closely watch the input field, it will change ng-invalid -> ng-pending -> ng-valid/invalid depending the promise value.
+
+    status changes and value changes
+    --------------------------------
+    The form state actually we can track using status and value changes subscribers, we need to listen to them.
+    For every key stroke it will send an updated object.
+        this.signupForm.valueChanges.subscribe((value)=> {
+            console.log(value);
+        })
+    statusChanges will give you, status of over all form, so that we analyze and react to it
+        this.signupForm.statusChanges.subscribe((status)=> {
+            console.log(status);
+        })
+
+    setting and patching value in reactive
+    ------------------------------------
+    setValue({}) will set the pre populated values
+        this.signupForm.setValue({
+            'userData': {
+                'username':'imam',
+                'email':'imamhulagur@gmail.com'
+            },
+            'gender':'male',
+            'hobbies':[]
+        })
+
+    patchValue - updates part of form
+         this.signupForm.patchValue({
+            'userData': {
+                'username':'patchedImam'
+            }
+        })
+
+    reset
+    -----
+    this.signupForm.reset()
+
+    creating your own validator class in diff fields
+    ------------------------------------------------
+    look at assignment solution video
 
 
 
