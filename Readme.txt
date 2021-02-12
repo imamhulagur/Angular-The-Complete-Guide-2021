@@ -745,7 +745,7 @@ FORMS
 
     FormArray
     ---------
-        When the control aer gets added dynamically
+        When the control are gets added dynamically
         1.declare FormArray with empty data inside signupForm
             'hobbies': new FormArray([])
         2.inform angular about created FormArray control in template
@@ -875,6 +875,100 @@ FORMS
     creating your own validator class in diff fields
     ------------------------------------------------
     look at assignment solution video
+
+
+    TD - shopping list form - implemented
+
+    Reactive - recipe edit form - struck
+
+Pipes
+*****
+    Pipes used for transforming output data in template
+        ex  | uppercase, | date
+    Parameterized Pipes
+        By adding : infront of pipe with 'string' parameter, if there are multiple then separate each by :
+        ex  date: 'fullDate' -> is should be on camelCase
+    apply multiple pipes on same content
+        order of execution is L->R
+    Creating Custom pipes
+    ---------------------
+        1.create ts file with appropriate pipe name ex  shorten.pipe.ts
+        2.we need to implements interface PipeTransform
+            export class ShortenPipe implements PipeTransform {
+            }
+        3.need to also implement transform(){} method.
+            @Pipe({
+                name: 'shorten'
+            })
+            transform(value: any) {
+                return value.substr(0, 10)+'...';//build in JS method which return sub string with first 10 character.
+            }
+        4.just like we did for other components/directives, here also we need to inform angular about our newly created custom pipe by declaring it inside declaration: []
+        5.make use of it in template 
+           something | shorten
+    parameterized custom pipe
+    --------------------------
+        transform(value: any, limit: number) {
+            if(something.length > limit) {
+                    return something.substr(0, 10)+'...';//build in JS method which return sub string with first 10 character.
+            }
+            else {
+                return something;//return unchanged value
+            }
+        }
+
+    creating filter pipe
+    --------------------
+    generate pipe using cli
+    >ng generate pipe pipeName or ng g p pipeName
+    filter pipe demo
+            transform(value: any, filterString: string, propName: string): any {
+            if(value.length === 0) {
+                return value;
+            } 
+            const resultArray=[];
+            for(const item of value) {
+                if(item[propName] === filterString || filterString === '') {
+                    resultArray.push(item);
+                }
+            }
+            return resultArray;
+        }
+    *ngFor="let server of servers | filter:filteredStatus:'status'"
+
+    pure and impure pipe
+    -------------------
+        Thankfully Angular will not rerun our pipe, whenever this data changes.
+            So adding the input or changing the input of pipe will trigger a recalculation,really will trigger the pipe being applied to the data again but 'changing data wont trigger this'
+        Thats good otherwise angular wold have to run this pipe or rerun pipe whenever any data on the page changes. This would be really bad  and it will cause lot of performance issue.
+    But angular also provide the option to force pipe to run or rerun or recalculated whenever data changes on page.
+    this would be achieved by pure : false by default it is set to true.
+    ex:
+        @Pipe({
+            name: 'filter',
+            pure: false
+        })
+    Note:  This recalculated not only when pipe value changes, anything changes also.
+
+    async pipe
+    -----------
+    if we have a server status coming from server
+        appStatus = new Promise((resolve, reject)=> {
+            setTimeout(()=> {
+                resolve('stable');
+            }, 2000)
+        });
+    <h2>App Status: {{appStatus}}</h2>
+
+    This will give [object promise] - yes it is, because it will get converts into string after 2 sec, but dont know that so it will return promise object itself.
+
+    To over come this, angular provides an pipe 'async' to to tell that we are waiting for the status which is asynchronous.
+    <h2>App Status: {{appStatus | async}}</h2>
+
+
+        
+
+
 
 
 
