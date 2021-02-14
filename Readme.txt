@@ -965,6 +965,683 @@ Pipes
     To over come this, angular provides an pipe 'async' to to tell that we are waiting for the status which is asynchronous.
     <h2>App Status: {{appStatus | async}}</h2>
 
+Making http Requests
+********************
+    Till now whatever data we worked with is not persisted the browser only data(we store the data somewhere in the browser memory), once we refresh or restart the data is gone.
+
+    Can we hide JS? No...! but we so have mechanism to hide/restrict api keys.
+        https://academind.com/tutorials/hide-javascript-code/
+
+    How http conn works
+    --------------------
+
+    Angular(data access/file upload/ analytics)
+        |
+        |send/receive HTTP request
+        |
+    (API(TEST.GraphGL))<----------------------->DB(SQL/Mongo DB)
+
+    Backend Firebase setup(Complete backend solution)
+    ----------------------
+    it provide free backend REST apis
+    also act like DB
+    steps
+    1.create new project
+    2.here we will use 'real time database'
+        build->create database->start in test mode->enable
+        https://ng-complete-guide-imam-default-rtdb.firebaseio.com/
+    sending POST request
+    -------------------
+    1.add new 'HttpClientModule' inside app,module.ts imports[]
+    2.inject module service in constructor ->private http: HttpClient
+    3. this.https.post('url', body)
+        since even in firebase we are not directly ralking DB, we are talking to Rest api exposed by firebase
+            for this anything after main end point, the fire make it folder structure, also we need to put '.json. at the end of url. This is firebase requirement.
+        Usually we need to convert out JS data into JSon data and the expose, but The angular HttpClient will automatically convert our JS data into JSON. So no need of using JSon.parse(postData)
+        Note : Angular heavily used 'observables' as we know, similarly the http request also managed by observables because they are perfect useCase for observables. We can wrap them and subscribe to them to get know the response also we can handle errors.
+
+        Here in our case Angular is smart if we are not subscribing to that prepared http request to the observable that wraps out http request, then Angular and RxJS know that 'no one is interested in the response' Therefore the request does not even get sent.
+
+        post indeed will return an observable, it does not give data as a value instead it will return return an observable that wraps our request.
+
+        To get access to that response we need to call .subscribe()
+
+        this.https.post('https://ng-complete-guide-imam-default-rtdb.firebaseio.com/post.json', postData)
+            .subscribe(responseData => {
+            console.log(responseData);
+        });
+        the unsubscription will be handled by angular automatically.
+
+        The browser will sedn 2 request to the end point
+        one  - OPTIONS 
+            To check whether the post https request is allowed to send or not.If it got success(200) response.
+        second - POST
+            data gets sent sent with automated headers meta data.
+            name: "-MTP2HJ16EtzwC4oRROi"
+            go to network tab to observe request
+
+        OPTOIONS request
+        Request Headers
+            OPTIONS /post.json HTTP/1.1
+            Host: ng-complete-guide-imam-default-rtdb.firebaseio.com
+            Connection: keep-alive
+            Accept: */*
+            Access-Control-Request-Method: POST
+            Access-Control-Request-Headers: content-type
+            Origin: http://localhost:4200
+            User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.146 Safari/537.36
+            Sec-Fetch-Mode: cors
+            Sec-Fetch-Site: cross-site
+            Sec-Fetch-Dest: empty
+            Referer: http://localhost:4200/
+            Accept-Encoding: gzip, deflate, br
+            Accept-Language: en-GB,en-US;q=0.9,en;q=0.8,hi;q=0.7,kn;q=0.6
+
+        Response Headers(view source)
+            OPTIONS /post.json HTTP/1.1
+            Host: ng-complete-guide-imam-default-rtdb.firebaseio.com
+            Connection: keep-alive
+            Accept: */*
+            Access-Control-Request-Method: POST
+            Access-Control-Request-Headers: content-type
+            Origin: http://localhost:4200
+            User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.146 Safari/537.36
+            Sec-Fetch-Mode: cors
+            Sec-Fetch-Site: cross-site
+            Sec-Fetch-Dest: empty
+            Referer: http://localhost:4200/
+            Accept-Encoding: gzip, deflate, br
+            Accept-Language: en-GB,en-US;q=0.9,en;q=0.8,hi;q=0.7,kn;q=0.6
+
+        POST request
+        Headers
+            Response Headers
+                Access-Control-Allow-Origin: http://localhost:4200
+                Cache-Control: no-cache
+                Connection: keep-alive
+                Content-Length: 31
+                Content-Type: application/json; charset=utf-8
+                Date: Sat, 13 Feb 2021 06:21:28 GMT
+                Server: nginx
+                Strict-Transport-Security: max-age=31556926; includeSubDomains; preload
+
+            Request Headers
+                POST /post.json HTTP/1.1
+                Host: ng-complete-guide-imam-default-rtdb.firebaseio.com
+                Connection: keep-alive
+                Content-Length: 47
+                sec-ch-ua: "Chromium";v="88", "Google Chrome";v="88", ";Not A Brand";v="99"
+                Accept: application/json, text/plain, */*
+                sec-ch-ua-mobile: ?0
+                User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.146 Safari/537.36
+                Content-Type: application/json
+                Origin: http://localhost:4200
+                Sec-Fetch-Site: cross-site
+                Sec-Fetch-Mode: cors
+                Sec-Fetch-Dest: empty
+                Referer: http://localhost:4200/
+                Accept-Encoding: gzip, deflate, br
+                Accept-Language: en-GB,en-US;q=0.9,en;q=0.8,hi;q=0.7,kn;q=0.6
+
+                Request Payload
+                {"title":"test title","content":"test content"}
+
+        Response
+            {"name":"-MTP2HJ16EtzwC4oRROi"}
+
+    In conclusion - >The request are sent only when you subscribe to them!!!
+
+    Your data will be available in firebase 
+    project name->end point folder->encrypted key folder->key:value
+
+    Sending get request
+    -------------------
+        this.https.get('url')
+        here also you need to subscribe i.e no subscription no request!!
+        create private method to get
+        call is from required function
+        also from init() because it should send request asap then page load.
+
+        The data which are got back as json object as follows
+        -MTP2HJ16EtzwC4oRROi: {
+            content: "posted content"
+            title: "posted title"
+        }   
+        we can store data and loop though it. To do that we need to transform the JS Object to array using 'Observable operators'
+
+    Using RxJS operators to transform Response Data
+    -----------------------------------------------
+    we will transform data before .subscribe()
+    we user pipe() RxJS operator-> this allow us to transform our observable data through multiple operator before they reach to .subscribe() method.
+    map()->it allows us to get some data and rereturn new data which is then automatically rewrapped into an observable so that we can subscribe to it.
+    import it manually
+        import { map } from 'rxjs/operators';
+    converge JS Object into array
+        .pipe(
+            map(responseData => {
+                const postsArray = [];
+                //to cover JS object to new Array we need to loop through array
+                for(const key in responseData) {
+                if(responseData.hasOwnProperty(key)) {
+                    postsArray.push({...responseData[key], id: key});
+                }
+                }
+                return postsArray;
+            })
+        )
+        before transformation
+        {
+            -MTP2HJ16EtzwC4oRROi:{
+                content: "posted content"
+                title: "posted title"
+            }                
+        }
+        After transformation
+        [
+            {
+                content: "posted content"
+                id: "-MTP2HJ16EtzwC4oRROi"
+                title: "posted title"
+            }
+        ]
+    Using Types with https client
+    -----------------------------
+    currently our angular is not detecting the type of data, u can just hover over 'posts' it it will give you type <any>. Thats should not be case. To over some this..
+
+    create Post model
+    post.model.ts
+        export interface Post { 
+            title: string; 
+            content: string;
+            id?: string;//?:-> this is optional, we will get dynamically at run time.
+        }  
+        //replace object with of type Post
+        onCreatePost(postData: Post)
+
+        map( responseData: {[key: string]: Post}) => {}
+        here key will hold the data of type Post
+
+        set out postsArray type Post
+         const postsArray: Post[] = [];
+
+         Now it is well formatted code, we can get suggestion of prop when we try to access them.
+
+         However angular Http Client will give us good way to assigning type. we dont need to do this on map or somewhere, instead .get() so called generic method<> i.e inside that we can store the type which this response will actually return as a body.
+            .get<{[key: string]: Post}>
+            this.https.post<{name: string}>
+        To avoid unwanted Typescript errors!
+
+    outputting posts
+    ----------------
+        assign posts to loadedPosts[]
+            .subscribe(posts=> {
+                //console.log(posts);
+                this.loadedPosts = posts;
+            });
+
+        loop through based o condition and display
+        <div class="row">
+            <div class="col-xs-12 col-md-6 col-md-offset-3">
+                <p *ngIf="loadedPosts.length < 1">No posts available!</p>
+                <ul class="list-group" *ngIf="loadedPosts.length >= 1">
+                    <li class="list-group-item" *ngFor="let post of loadedPosts">
+                        <h3>{{post.title}}</h3>
+                        <p>{{post.content}}</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    showing loading indicator
+    -------------------------
+    1.declare flag
+         isFetching = false;
+    2.before sending fetch request, make it true.
+        private fetchPosts() {
+            this.isFetching = true;
+            ...
+        }
+    3.once fetching done, again make it false
+        .subscribe(posts=> {
+            this.isFetching = false;
+        }
+
+    1.check for isFetching flag and show appropriate message.
+        <div class="row">
+            <div class="col-xs-12 col-md-6 col-md-offset-3">
+                <p 
+                    *ngIf="loadedPosts.length < 1
+                    && !isFetching"
+                    >No posts available!</p>
+                <ul 
+                    class="list-group" 
+                    *ngIf="loadedPosts.length >= 1
+                    && !isFetching"
+                    >
+                    <li class="list-group-item" *ngFor="let post of loadedPosts">
+                    <h3>{{post.title}}</h3>
+                    <p>{{post.content}}</p>
+                    </li>
+                </ul>
+                <p *ngIf="isFetching">Loading...</p>
+            </div>
+        </div>
+
+    Using a service for http request
+    --------------------------------
+        If our application grows bigger and bigger, its good practice to outsource that into services instead of complicating template by creating isFetching!
+        
+        Services are the parts of angular application that do the heavy uplifting and dirty work and our template component are relatively lean.
+
+        1.we wil create service for posts now
+        posts.service.ts - we have moved heavy uplifting code inside this.
+            import { HttpClient } from "@angular/common/http";
+            import { Injectable } from "@angular/core";
+            import { Post } from "./post.model";
+            import { map } from 'rxjs/operators'
+
+
+            @Injectable({
+                providedIn: 'root'//modern approach, instead of declaring inside provider[] in app.module.ts 
+            })
+            export class PostsServices {
+                //in this service i will have my HTTP request methods and i only want get the responses/messages whether we are done with request or not in front end.
+                constructor(private http: HttpClient) {}
+                createAndStorePost(title: string, content: string) {
+                    const postData: Post = {title: title, content: content};
+                    this.http.post<{name: string}>('https://ng-complete-guide-imam-default-rtdb.firebaseio.com/post.json', postData)
+                    .subscribe(responseData => {
+                    console.log(responseData);
+                    });
+                }
+
+                fetchPosts() {
+                    return this.http.get<{[key: string]: Post}>('https://ng-complete-guide-imam-default-rtdb.firebaseio.com/post.json')
+                    .pipe(
+                        map((responseData) => {
+                            const postsArray: Post[] = [];
+                            //to cover JS object to new Array we need to loop through array
+                            for(const key in responseData) {
+                                if(responseData.hasOwnProperty(key)) {
+                                    postsArray.push({...responseData[key], id: key});
+                                }
+                            }
+                            return postsArray;
+                        })
+                    )
+                    // .subscribe(posts=> {
+                    // });
+                }
+            }
+        2.implement same functionality inside service, call these methods by injecting service.
+    
+    services and components working together
+    ----------------------------------------
+    because we lost the connection here, hence didnt get any data.
+    2 possible way are there to fix this
+        1.using Subject, next() - good for complex scenarios.
+        2.since here we have simple
+            we will not subscribe the observable inside service instead i will return this prepared observable in service and we will subscribe it inside component(only subscription).
+        In component we only subscribe to that returned observable from posts.service.ts
+            onFetchPosts() {
+                // Send Http request
+                //this.fetchPosts();
+                this.isFetching = true;//before sending request
+                this.postsService.fetchPosts().subscribe(posts=> {
+                    this.isFetching = false;//after done with request
+                    this.loadedPosts=posts;//store the posts into loadedPosts
+                });
+            }
+    
+    sending delete request
+    ----------------------
+    1.create functionality delete inside postsService and return the observable
+         deletePosts() {
+            return this.http.delete('https://ng-complete-guide-imam-default-rtdb.firebaseio.com/post.json');
+        }
+    2.subscribe to observable in app component and make loadedPost [] empty
+        onClearPosts() {
+            // Send Http request
+            this.postsService.deletePosts().subscribe(()=>{
+            //i dont really care about the response/fag here
+            this.loadedPosts = [];//make all the loaded posts array empty
+            })
+        }
+    Handling errors
+    --------------
+    If we go and and change the rules in firebase, if we make 'read' access 'false'
+        {
+            "rules": {
+                ".read": "false",  // 2021-3-15
+                ".write": "now < 1615746600000",  // 2021-3-15
+            }
+        }
+    first way
+        we will get unauthorized(401) error - loading..
+        thats not good user experience, so we need to handle it and gave proper error message to user.
+
+        here Observable, 2nd argument is ment for error handling.
+        1.create flag error
+            error = null;
+        2.listen to error function inside observable
+            error => {
+                this.error = error.message;
+                console.log(error);
+            });
+        3.check flag and display error in template
+            <p *ngIf="isFetching && !error">Loading...</p>
+            <div class="alert alert-danger" *ngIf="error">
+                <h3>
+                    An Error occurred
+                    <p>{{ error }}</p>
+                </h3>
+            </div>
+
+    second way - handing errors using Subjects/Subject based forwarding of errors
+    -----------------------------------------------------------------------------
+        This is helpful when your error message should useful in multiple components
+
+        Here in our care we have subscribed and handles error inside postsService but we wanted display error message in app.component.ts, so in this scenario we need to return our error message using Subject and subscribe it in app.component
+
+        1.create Subject of type string
+            errorMessage = new Subject<string>();
+        2.get the error message and expose error message who all listening using next function in 2nd argument of Observable.
+            ..., error=> {
+                this.errorMessage.next(error.error);
+                console.log(error);
+            }
+        3.now listen inside app.component.ts and display it. mean that we can subscribe to that Subject in whichever component we are interested to show that particular error message.
+            this.postsService.errorMessage.subscribe(errorMessage=> {
+                this.error = errorMessage;
+            })
+
+        4.unsubscribe errorSubscription
+            declare subscription variable
+                private errorSubs: Subscription;
+            save subscription in that variable inside onInIt()
+                this.errorSubs = this.postsService.errorMessage.subscribe(errorMessage=> {
+                    this.error = errorMessage;
+                })
+            unsubscribe inside ngOnDestroy()
+                ngOnDestroy() {
+                    this.errorSubs.unsubscribe();
+                }
+    using catchError and throwError operator from rxjs
+    --------------------------------------------------
+    send to analytics service to keep track of  front end logs, to do behind the scenes when a error occurred
+        import catchError operator -> rxjs/Operators
+                throwError observable -> rxjs
+
+        catchError(errorRes => {
+                //send to analytics service to keep track of  front end logs, to do behind the scenes when a error occurred
+                return throwError(errorRes);
+            })
+
+    Error Handling and UX
+    --------------------
+    user to get rid of that error message
+        once we get an error make isFetching = false;
+        in handler fun
+            error=null;
+    ex  <button 
+            class="btn btn-danger" 
+            (click)="onHandleError()"
+            >Ok</button>
+
+        onHandleError() {
+            this.error = null;
+        }
+
+        error => {
+        this.isFetching = false;//added
+        this.error = error.message;
+      }
+
+    setting Headers
+    ---------------
+    In case of any http request, last argument where we can configure the required headers object with key:value pairs.
+
+    import HttpHeaders and create headers object
+        this.http.get<{[key: string]: Post}>('https://ng-complete-guide-imam-default-rtdb.firebaseio.com/post.json', {
+            headers:new HttpHeaders({
+                'Custom-Header': 'Hello'
+            })
+        })...
+    
+    Adding queryParams
+    ------------------
+    import HttpParams, provide value to 'params'
+        {
+            headers:new HttpHeaders({
+                'Custom-Header': 'Hello'
+            }),
+            params:new HttpParams().set('print', 'pretty')
+        }
+    o/p -> https://ng-complete-guide-imam-default-rtdb.firebaseio.com/post.json?print=pretty
+
+    alternatively if there are multiple queryParams we can append them into single variable and pass assign it to params
+
+    let searchParams = new HttpParams();
+    searchParams = searchParams.append('pretty', 'print');
+    searchParams = searchParams.append('test', 'temp');
+    
+    {
+        headers:new HttpHeaders({
+            'Custom-Header': 'Hello'
+        }),
+        params: searchParams
+    }
+    
+    
+    o/p->https://ng-complete-guide-imam-default-rtdb.firebaseio.com/post.json?pretty=print&test=temp
+
+    note-> we can also do it directly in url concatination
+
+
+    Observing diff types of responses
+    ---------------------------------
+    When we not only interested in response data, also we need full response object to check status etc
+    this can be done 2 ways by observ'ing
+    first way to observe response
+        by adding extra argument object inside post request, and set various value like 'body', 'response', 'events' to observe property.
+        post({...},
+            {
+                observe: 'response'
+            }
+        )
+        
+    Now we will have access to full(both headers, body etc) response object.
+        body: {name: "-MTQnAlj4GPurXpizF1X"}
+        headers: HttpHeaders {normalizedNames: Map(0), lazyUpdate: null, lazyInit: ƒ}
+        ok: true
+        status: 200
+        statusText: "OK"
+        type: 4
+        url: "https://ng-complete-guide-imam-default-rtdb.firebaseio.com/post.json"
+    
+    now we wil listen to events
+    delete({
+
+        }, {
+            observe: 'events'
+        }
+    )
+    
+    //here to console our data inside delete function we wil make use of tap operator
+
+    .pipe(tap()) -> tap operator from rxjs operators will just allow us to execute some code without altering the response, so that we can do something with the response but not disturb/interrupt our subscribe function and the function we passed.
+
+    post(..)
+    .pipe(tap(event=> {
+            console.log(event);
+        }));
+
+    If we listen to 'events' using 'observe' we will see two o/p now.
+
+    1.type object
+    2.full response object
+
+    *use -> we can inform user in UI like the request was sent, waiting for response...by comparing event type with HttpEventType enum need to import it from http.
+
+    delete(...)
+    .pipe(tap(event=> {
+            console.log(event);
+            if(event.type === HttpEventType.Response) {
+                console.log('request sent, waiting for response...')
+            }
+        }));
+
+    Note: just for the shake of fine gain control!!!
+
+
+    Changing the response Body type
+    -------------------------------
+    It will be helpful in the scenario where you we actully want text response but you are getting json.
+    we can also change response body type to 'json', 'text', 'blob' etc.
+    before-> {
+                observe: 'events',
+                responseType: 'json'
+            }
+        Body : something <-in json
+    now->{
+                observe: 'events',
+                responseType: 'text'
+            }
+        Body: "something" <-in text i.e its wrap it as string
+
+    Interceptors
+    ------------
+    When we dont wanna manually configure headers for every req/response tedious, for that we need interceptor.
+    Interceptors can perform a variety of implicit tasks from authentication to logging, in a routine, standard way fro for every HTTP request/response
+    Without Interceptors, developer would have to implement these tasks explicitly for 'each HttpClient method calls'
+
+    create interceptor
+        auth-interceptor.service.ts
+    declare class, and implement 'HttpInterceptor' from http module.
+        export class AuthInterceptorService implements HttpInterceptor
+    this will forces us to implement one method 'intercept()' which accept two arguments namely HttpRequest and HttpHandler.
+        intercept(req: HttpRequest<any>, next: HttpHandler) {
+        console.log('Request is on its way');//right before request sent/leaves
+        return next.handle(req);//this will let request to continue its journey.
+    }
+
+    Provide this interceptor service 'JS object' in providers[] of app.module.ts
+        1.it will take 3 keys
+            provider: HTTP_INTERCEPTOR->with this angular will get know whatever module we are providing they are the type of interceptor
+            useClass->the service class which you want to add as an interceptor
+            multi:true->inform angular we have multiple interceptor so dont replace the existing interceptors.
+                {
+                    provide: HTTP_INTERCEPTORS, 
+                    useClass: AuthInterceptorService, 
+                    multi: true
+                }
+    inConclusion:- interceptor will help with code which runs for every http method(we can also control to which url the request need to be sent, we can restrict unwanted url here)
+
+    manipulating request object
+    ---------------------------
+    inside an interceptor we can not only log data, we can also modify request object.
+    However the request object itself a immutable(cant be changed) i.e we cant override and send a request to new url. newReq = req.ulr('newUrl')
+    instead we can modify the whole request itself and send it to other url. using req.clone()
+        const modifiedRequest = req.clone(
+               {
+                    'url', 'newUrl',
+                    'headers', req.headers.append(k:'v'),
+                    'params', 'custom-params'
+               }
+        )
+
+    now forward the new request inside handle() instead of old one.
+         const modifiedRequest = req.clone({
+            headers: req.headers.append('Auth', 'xyz')
+        })
+        return next.handle(modifiedRequest);
+
+    for every http method it will add header 'Auth':'xyz'
+
+    Response interceptors
+    ---------------------
+    we can even manipulate(we dont do it usually)/display(do it regularly) response by using operators on handle()
+        return next.handle(modifiedRequest).pipe(tap(
+            event=>{
+                console.log(event);
+                if(event.type === HttpEventType.Response){
+                    console.log('response arrived, body data: ');
+                    console.log(event.body);
+                }
+            }
+        ));
+
+    multiple interceptor
+    --------------------
+    simple repeat the same object, but order does matter here. the order of execution will be first to last.
+    create one more interceptor for logging as logging-interceptor.service.ts
+
+    first auth-interceptor will run and add the headers
+        import { HttpInterceptor, HttpRequest, HttpHandler, HttpEventType} from '@angular/common/http';
+
+        export class AuthInterceptorService implements HttpInterceptor {
+            intercept(req: HttpRequest<any>, next: HttpHandler) {
+                console.log('first this interceptor will run');
+                const modifiedRequest = req.clone({
+                    headers: req.headers.append('Auth', 'xyz')
+                })
+                return next.handle(modifiedRequest);
+                
+            }
+        }
+
+    second logging-interceptor will run and print response body
+        export class LoggingInterceptorService implements HttpInterceptor {
+            intercept(req: HttpRequest<any>, next: HttpHandler) {
+                console.log('second this interceptor will run');
+                console.log('out going request to url: ');
+                console.log(req.url);
+                console.log(req.headers);
+                return next.handle(req).pipe(tap(
+                    event=>{
+                        if(event.type === HttpEventType.Response){
+                            console.log('incoming response: {event.body}');
+                        }
+                    }
+                ));
+            }
+        }
+    Official Docs: https://angular.io/guide/http
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
 
